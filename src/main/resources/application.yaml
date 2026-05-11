@@ -1,0 +1,51 @@
+
+spring:
+  application:
+    name: authservice
+  config:
+    import: "optional:configserver:http://localhost:8888"
+
+  cloud:
+    config:
+      fail-fast: false # Config 없이 기동
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_POST:6379}
+      timeout: 2000ms
+      lettuce:
+        pool:
+          # default
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+server:
+  port: 19091
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8000/eureka/}
+  instance:
+    prefer-ip-address: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, prometheus
+  endpoint:
+    health:
+      show-details: always
+
+jwt:
+  secret: ${JWT_SECRET}
+  access-token:
+    expiration-minutes: 30
+  refresh-token:
+    expiration-days: 14
+  issuer: pagely
+
+logging:
+  level:
+    com.pagely.authservice: DEBUG
