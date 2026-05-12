@@ -7,6 +7,7 @@ import java.time.Instant;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -60,21 +61,28 @@ public class RedisRefreshTokenRepository implements RefreshTokenRepository {
         }
 
         String key = RedisKeyBuilder.refreshToken(userId);
-        String storedHash = redisTemplate.opsForValue().get(key);
 
-        if (storedHash == null) {
-            log.debug("RT 미발견 — userId={}", userId);
+        try {
+            String storedHash = redisTemplate.opsForValue().get(key);
+
+            if (storedHash == null) {
+                log.debug("RT 미발견 — userId={}", userId);
+                return false;
+            }
+
+            String inputHash = TokenHasher.hash(rawToken);
+            if (!storedHash.equals(inputHash)) {
+                log.warn("RT 해시 불일치 — userId={}", userId);
+                return false;
+            }
+
+            // 만료 정보는 Redis TTL 이 관리 → 키 존재 = 유효
+            return true;
+
+        } catch (RuntimeException e) {
+            log.error("RT 검증 실패(저장소 오류) — userId={}", userId, e);
             return false;
         }
-
-        String inputHash = TokenHasher.hash(rawToken);
-        if (!storedHash.equals(inputHash)) {
-            log.warn("RT 해시 불일치 — userId={}", userId);
-            return false;
-        }
-
-        // 만료 정보는 Redis TTL 이 관리 → 키 존재 = 유효
-        return true;
     }
 
     @Override
@@ -84,14 +92,14 @@ public class RedisRefreshTokenRepository implements RefreshTokenRepository {
         }
 
         String key = RedisKeyBuilder.refreshToken(userId);
-        boolean result = Boolean.TRUE.equals(redisTemplate.delete(key));
 
-        if (result) {
+        try {
+            Boolean result = Boolean.TRUE.equals(redisTemplate.delete(key));
             log.debug("RT 삭제 완료 — userId={}", userId);
-        } else {
-            log.debug("RT 삭제 시도 — 키 없음 — userId={}", userId);
+            return result;
+        } catch (DataAccessException e) {
+            log.debug("RT 삭제 시도 — 키 없음 — userId={}", userId, e);
+            return false;
         }
-
-        return result;
     }
 }
