@@ -1,0 +1,22 @@
+# pagely-auth-service/src/test/resources/application-test.yml
+
+jwt:
+  secret: test-secret-key-that-is-long-enough-for-hs256-at-least-256bits-bytes
+  issuer: pagely-test
+  access-token:
+    expiration-minutes: 30
+  refresh-token:
+    expiration-days: 14
+
+spring:
+  cloud:
+    config:
+      enabled: false
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+eureka:
+  client:
+    enabled: false
