@@ -15,7 +15,7 @@ public record JwtProperties(
             return Duration.ofMinutes(expirationMinutes);
         }
     }
-
+ 
     public record RefreshToken(int expirationDays) {
         public Duration toDuration() {
             return Duration.ofDays(expirationDays);

@@ -7,7 +7,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class RedisKeyBuilderTest {
-
     @Test
     @DisplayName("RT 키는 service prefix + userId")
     void refreshTokenKey() {

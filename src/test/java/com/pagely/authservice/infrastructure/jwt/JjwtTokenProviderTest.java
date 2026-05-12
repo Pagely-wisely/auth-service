@@ -137,7 +137,7 @@ class JjwtTokenProviderTest {
                     .extracting("errorCode")
                     .isEqualTo(AuthErrorCode.INVALID_ACCESS_TOKEN);
         }
-
+ 
         @Test
         @DisplayName("다른 secret 으로 서명된 토큰은 INVALID_ACCESS_TOKEN")
         void wrongSignature() {

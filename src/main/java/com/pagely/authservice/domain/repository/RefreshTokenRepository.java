@@ -1,7 +1,6 @@
 package com.pagely.authservice.domain.repository;
 
 import com.pagely.authservice.domain.model.RefreshToken;
-import java.util.Optional;
 import java.util.UUID;
 
 public interface RefreshTokenRepository {

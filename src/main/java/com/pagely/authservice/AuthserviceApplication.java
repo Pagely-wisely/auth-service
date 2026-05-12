@@ -13,8 +13,8 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 @EnableConfigurationProperties(JwtProperties.class)
 public class AuthserviceApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(AuthserviceApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(AuthserviceApplication.class, args);
+    }
 
 }

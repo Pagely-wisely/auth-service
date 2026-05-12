@@ -7,7 +7,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class TokenHasherTest {
-
     @Test
     @DisplayName("같은 입력은 같은 해시 (결정성)")
     void deterministic() {
