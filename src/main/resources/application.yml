@@ -47,6 +47,13 @@ jwt:
     expiration-days: 14
   issuer: pagely
 
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 3000
+        readTimeout: 5000
+
 logging:
   level:
     com.pagely.authservice: DEBUG

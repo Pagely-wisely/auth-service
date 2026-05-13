@@ -1,5 +1,3 @@
-// src/main/java/com/pagely/authservice/infrastructure/external/FeignUserCredentialVerifier.java
-
 package com.pagely.authservice.infrastructure.provider;
 
 import com.pagely.authservice.application.port.UserCredentialProvider;

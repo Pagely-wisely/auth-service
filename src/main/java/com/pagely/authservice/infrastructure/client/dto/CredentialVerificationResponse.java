@@ -4,7 +4,7 @@ import com.pagely.common.auth.Role;
 import java.util.UUID;
 
 /**
- * User Service 의 자격 검증 API 응답 DTO.ß
+ * User Service 의 자격 검증 API 응답 DTO.
  */
 public record CredentialVerificationResponse(
         UUID userId,

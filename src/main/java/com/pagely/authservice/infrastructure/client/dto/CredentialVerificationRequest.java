@@ -1,5 +1,3 @@
-// src/main/java/com/pagely/authservice/infrastructure/external/dto/CredentialVerificationRequest.java
-
 package com.pagely.authservice.infrastructure.client.dto;
 
 /**

@@ -1,5 +1,3 @@
-// src/main/java/com/pagely/authservice/domain/service/UserCredentialProvider.java
-
 package com.pagely.authservice.application.port;
 
 import com.pagely.common.auth.Role;
