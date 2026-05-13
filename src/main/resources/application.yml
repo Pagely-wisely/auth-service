@@ -1,9 +1,10 @@
-
 spring:
   application:
     name: authservice
   config:
-    import: "optional:configserver:http://localhost:8888"
+    import:
+      - optional:configserver:http://localhost:8888
+      - optional:classpath:.env[.properties]
 
   cloud:
     config:
@@ -12,7 +13,7 @@ spring:
   data:
     redis:
       host: ${REDIS_HOST:localhost}
-      port: ${REDIS_POST:6379}
+      port: ${REDIS_PORT:6379}
       timeout: 2000ms
       lettuce:
         pool:
