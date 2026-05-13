@@ -1,4 +1,4 @@
-package com.pagely.authservice.domain.service;
+package com.pagely.authservice.application.port;
 
 import com.pagely.authservice.domain.model.AccessToken;
 import com.pagely.authservice.domain.model.RefreshToken;

@@ -1,10 +1,10 @@
 package com.pagely.authservice.infrastructure.jwt;
 
+import com.pagely.authservice.application.port.JwtTokenProvider;
 import com.pagely.authservice.domain.exception.AuthErrorCode;
 import com.pagely.authservice.domain.model.AccessToken;
 import com.pagely.authservice.domain.model.RefreshToken;
 import com.pagely.authservice.domain.model.TokenPayload;
-import com.pagely.authservice.domain.service.JwtTokenProvider;
 import com.pagely.common.auth.Role;
 import com.pagely.common.exception.BusinessException;
 import io.jsonwebtoken.Claims;
