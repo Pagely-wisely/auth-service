@@ -7,6 +7,7 @@ import com.pagely.authservice.infrastructure.client.dto.CredentialVerificationRe
 import com.pagely.authservice.infrastructure.client.dto.UserAuthInfoResponse;
 import com.pagely.common.exception.BusinessException;
 import feign.FeignException;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -35,16 +36,22 @@ public class UserCredentialVerifyProviderAdapter implements UserCredentialProvid
             );
             return new Result(response.userId(), response.role());
 
-        } catch (FeignException.Forbidden e) {
-            log.debug("User isSuspended true  — code={}", loginId);
-            throw new BusinessException(AuthErrorCode.USER_SUSPENDED);
-        } catch (FeignException.Unauthorized e) {
-            log.debug("User Service 자격 검증 실패 — loginId={}", loginId);
-            throw new BusinessException(AuthErrorCode.INVALID_CREDENTIALS);
-
         } catch (FeignException e) {
             log.error("User Service 통신 오류 — status={}, message={}", e.status(), e.getMessage());
             throw new BusinessException(AuthErrorCode.USER_SERVICE_UNAVAILABLE);
         }
     }
+
+    @Override
+    public Result findIdentity(UUID userId) {
+        try {
+            UserAuthInfoResponse response = userServiceClient.getAuthInfo(userId);
+            return response.toResult();
+        } catch (FeignException e) {
+            log.error("User Service 통신 오류 — status={}, message={}", e.status(), e.getMessage());
+            throw new BusinessException(AuthErrorCode.USER_SERVICE_UNAVAILABLE);
+        }
+
+    }
+
 }

@@ -1,5 +1,6 @@
 package com.pagely.authservice.infrastructure.client.dto;
 
+import com.pagely.authservice.application.port.UserCredentialProvider.Result;
 import com.pagely.common.auth.Role;
 import java.util.UUID;
 
@@ -10,4 +11,7 @@ public record UserAuthInfoResponse(
         UUID userId,
         Role role
 ) {
+    public Result toResult() {
+        return new Result(userId, role);
+    }
 }

@@ -11,8 +11,6 @@ import com.pagely.authservice.domain.model.AccessToken;
 import com.pagely.authservice.domain.model.RefreshToken;
 import com.pagely.authservice.domain.model.TokenPair;
 import com.pagely.authservice.domain.repository.RefreshTokenRepository;
-import com.pagely.authservice.infrastructure.client.UserServiceClient;
-import com.pagely.authservice.infrastructure.client.dto.UserAuthInfoResponse;
 import com.pagely.common.exception.BusinessException;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -28,8 +26,6 @@ public class AuthApplicationService {
     private final UserCredentialProvider credentialProvider;
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
-    private final UserServiceClient userServiceClient;
-
     /*
      * <p>로그인</p>
      *
@@ -43,21 +39,21 @@ public class AuthApplicationService {
     @Transactional
     public AuthenticationResult login(LoginCommand command) {
         // 1. 자격 검증 및 초기 권한 획득
-        UserCredentialProvider.Result verifyResult = credentialProvider.verify(
+        UserCredentialProvider.Result identity = credentialProvider.verify(
                 command.loginId(),
                 command.password()
         );
 
         // 2. 토큰 생성 (AT에는 Role 포함, RT는 랜덤 문자열)
-        AccessToken accessToken = jwtTokenProvider.createAccessToken(verifyResult.userId(), verifyResult.role());
+        AccessToken accessToken = jwtTokenProvider.createAccessToken(identity.userId(), identity.role());
         RefreshToken refreshToken = jwtTokenProvider.createRefreshToken();
 
         // 3. Redis 저장 (userId와 RT 해시값 매핑)
-        refreshTokenRepository.save(verifyResult.userId(), refreshToken);
+        refreshTokenRepository.save(identity.userId(), refreshToken);
 
-        log.info("로그인 완료 — userId={}", verifyResult.userId());
+        log.info("로그인 완료 — userId={}", identity.userId());
 
-        return AuthenticationResult.of(verifyResult.userId(), new TokenPair(accessToken, refreshToken));
+        return AuthenticationResult.of(identity.userId(), new TokenPair(accessToken, refreshToken));
     }
 
     /*
@@ -77,10 +73,9 @@ public class AuthApplicationService {
                 .orElseThrow(() -> new BusinessException(AuthErrorCode.INVALID_REFRESH_TOKEN));
 
         // 2. 실시간 권한 조회 (최신 데이터 보장)
-        UserAuthInfoResponse userResponse = userServiceClient.getAuthInfo(userId);
-
+        UserCredentialProvider.Result identity = credentialProvider.findIdentity(userId);
         // 3. 새 AT 발급 및 응답
-        AccessToken newAccessToken = jwtTokenProvider.createAccessToken(userId, userResponse.role());
+        AccessToken newAccessToken = jwtTokenProvider.createAccessToken(userId, identity.role());
         RefreshToken currentRefreshToken = new RefreshToken(command.refreshToken(), null, null);
 
         log.info("토큰 갱신 완료 — userId={}", userId);
