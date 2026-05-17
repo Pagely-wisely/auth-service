@@ -3,17 +3,17 @@ spring:
     name: authservice
   config:
     import:
-      - optional:configserver:http://localhost:8888
+      - optional:configserver:${CONFIG_SERVER_URL:http://pagely-config:8888}
       - optional:classpath:.env[.properties]
   profiles:
-    active: dev
+    active: prod
   cloud:
     config:
       fail-fast: false # Config 없이 기동
 
   data:
     redis:
-      host: ${REDIS_HOST:localhost}
+      host: ${REDIS_HOST:pagely-redis}
       port: ${REDIS_PORT:6379}
       timeout: 2000ms
       lettuce:
@@ -27,9 +27,11 @@ server:
 eureka:
   client:
     service-url:
-      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8000/eureka/}
+      defaultZone: ${EUREKA_SERVER_URL:http://pagely-eureka:8000/eureka/}
   instance:
     prefer-ip-address: true
+    # 도커 내부에서 인스턴스가 겹치지 않도록 유니크한 ID 부여
+    instance-id: ${spring.application.name}:${server.port}:${random.value}
 
 management:
   endpoints:
@@ -54,7 +56,3 @@ feign:
       default:
         connectTimeout: 3000
         readTimeout: 5000
-
-logging:
-  level:
-    com.pagely.authservice: DEBUG
