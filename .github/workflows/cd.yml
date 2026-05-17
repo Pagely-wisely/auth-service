@@ -73,6 +73,7 @@ jobs:
               --name auth \
               -p 19091:19091 \
               -e SPRING_PROFILES_ACTIVE=prod \
+              -e LOGGING_LEVEL_COM_PAGELY_AUTHSERVICE=DEBUG \
               --env-file .env \
               --restart always \
               ${{ secrets.DOCKER_USERNAME }}/auth-service:latest
