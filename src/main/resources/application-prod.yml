@@ -30,8 +30,7 @@ eureka:
       defaultZone: ${EUREKA_SERVER_URL:http://pagely-eureka:8000/eureka/}
   instance:
     prefer-ip-address: true
-    # 도커 내부에서 인스턴스가 겹치지 않도록 유니크한 ID 부여
-    instance-id: ${spring.application.name}:${server.port}:${random.value}
+    hostname: ${HOSTNAME:localhost}
 
 management:
   endpoints:
