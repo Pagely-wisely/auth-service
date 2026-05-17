@@ -1,6 +1,7 @@
 package com.pagely.authservice.domain.repository;
 
 import com.pagely.authservice.domain.model.RefreshToken;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface RefreshTokenRepository {
@@ -16,9 +17,9 @@ public interface RefreshTokenRepository {
     /**
      * RT 검증.
      *
-     * <p>userId 의 저장된 RT 해시와 전달된 RT 의 해시 비교.</p>
+     * <p>전달된 RT의 해시로 저장된 userId가 있는지 확인 </p>
      */
-    boolean validate(UUID userId, String rawToken);
+    Optional<UUID> findUserIdByToken(String rawToken);
 
     /**
      * 사용자의 RT 삭제 (로그아웃 / 강제 무효화).

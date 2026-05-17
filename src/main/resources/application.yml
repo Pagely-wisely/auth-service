@@ -5,7 +5,8 @@ spring:
     import:
       - optional:configserver:http://localhost:8888
       - optional:classpath:.env[.properties]
-
+  profiles:
+    active: prod
   cloud:
     config:
       fail-fast: false # Config 없이 기동
@@ -46,6 +47,13 @@ jwt:
   refresh-token:
     expiration-days: 14
   issuer: pagely
+
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 3000
+        readTimeout: 5000
 
 logging:
   level:

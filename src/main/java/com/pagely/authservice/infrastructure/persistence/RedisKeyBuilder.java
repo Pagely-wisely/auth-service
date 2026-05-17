@@ -15,7 +15,7 @@ public final class RedisKeyBuilder {
     private RedisKeyBuilder() {
         throw new UnsupportedOperationException("Utility class");
     }
- 
+
     /**
      * RT 저장 키.
      *
@@ -23,6 +23,14 @@ public final class RedisKeyBuilder {
      */
     public static String refreshToken(UUID userId) {
         return SERVICE_PREFIX + ":rt:" + userId;
+    }
+
+    /**
+     * RT 인덱스 키 (토큰 해시로 userId 조회용).
+     * <p>예: {@code auth-service:rt:index:abc123hash}</p>
+     */
+    public static String refreshTokenIndex(String tokenHash) {
+        return SERVICE_PREFIX + ":rt:index:" + tokenHash;
     }
 
     /**

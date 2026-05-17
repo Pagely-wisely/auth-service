@@ -4,6 +4,7 @@ import com.pagely.authservice.domain.model.RefreshToken;
 import com.pagely.authservice.domain.repository.RefreshTokenRepository;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,16 +17,17 @@ import org.springframework.stereotype.Repository;
  *
  * <p><b>저장 구조</b></p>
  * <ul>
- *   <li>Key: {@code auth-service:rt:{userId}}</li>
- *   <li>Value: 토큰 해시 (SHA-256 + Base64URL, String)</li>
- *   <li>TTL: RT 만료까지 (자동 정리)</li>
+ * <li><b>Forward Index (User to Token):</b> {@code auth-service:rt:{userId}} -> {@code tokenHash}</li>
+ * <li><b>Reverse Index (Token to User):</b> {@code auth-service:rt:index:{tokenHash}} -> {@code userId}</li>
+ * <li><b>TTL:</b> RT 만료 시각에 맞춰 두 키 모두 자동 삭제</li>
  * </ul>
  *
  * <p><b>설계 의도</b></p>
  * <ul>
- *   <li>도메인 모델 (RefreshToken) 과 저장 구조 분리</li>
- *   <li>검증에 필요한 최소 정보 (해시) 만 저장</li>
- *   <li>발급 / 만료 시각은 Redis TTL 이 자동 관리</li>
+ * <li>도메인 모델 (RefreshToken) 과 저장 구조 분리</li>
+ * <li>보안을 위해 원문 토큰이 아닌 SHA-256 해시값만 저장</li>
+ * <li><b>1:1 관계 유지:</b> 유저당 하나의 RT만 허용하며, 갱신 시 기존 인덱스를 명시적으로 정리 (덮어쓰기 방지)</li>
+ * <li>검증 시 O(1) 성능을 위해 역방향 인덱스 활용</li>
  * </ul>
  */
 @Slf4j
@@ -49,40 +51,35 @@ public class RedisRefreshTokenRepository implements RefreshTokenRepository {
 
         String key = RedisKeyBuilder.refreshToken(userId);
         String tokenHash = TokenHasher.hash(refreshToken.value());
+        String indexKey = RedisKeyBuilder.refreshTokenIndex(tokenHash);
+
+        String oldHash = redisTemplate.opsForValue().get(key);
+        if (oldHash != null) {
+            String oldIndexKey = RedisKeyBuilder.refreshTokenIndex(oldHash);
+            redisTemplate.delete(oldIndexKey);
+        }
 
         redisTemplate.opsForValue().set(key, tokenHash, Duration.ofSeconds(ttlSeconds));
+        redisTemplate.opsForValue().set(indexKey, userId.toString(), Duration.ofSeconds(ttlSeconds));
+
         log.debug("RT 저장 완료 — userId={}, ttl={}s", userId, ttlSeconds);
     }
 
     @Override
-    public boolean validate(UUID userId, String rawToken) {
-        if (userId == null || rawToken == null || rawToken.isBlank()) {
-            return false;
+    public Optional<UUID> findUserIdByToken(String rawToken) {
+        if (rawToken == null || rawToken.isBlank()) {
+            return Optional.empty();
         }
 
-        String key = RedisKeyBuilder.refreshToken(userId);
+        String tokenHash = TokenHasher.hash(rawToken);
+        String indexKey = RedisKeyBuilder.refreshTokenIndex(tokenHash);
+        String userIdStr = redisTemplate.opsForValue().get(indexKey);
 
-        try {
-            String storedHash = redisTemplate.opsForValue().get(key);
-
-            if (storedHash == null) {
-                log.debug("RT 미발견 — userId={}", userId);
-                return false;
-            }
-
-            String inputHash = TokenHasher.hash(rawToken);
-            if (!storedHash.equals(inputHash)) {
-                log.warn("RT 해시 불일치 — userId={}", userId);
-                return false;
-            }
-
-            // 만료 정보는 Redis TTL 이 관리 → 키 존재 = 유효
-            return true;
-
-        } catch (RuntimeException e) {
-            log.error("RT 검증 실패(저장소 오류) — userId={}", userId, e);
-            return false;
+        if (userIdStr == null) {
+            return Optional.empty();
         }
+
+        return Optional.of(UUID.fromString(userIdStr));
     }
 
     @Override
@@ -92,8 +89,13 @@ public class RedisRefreshTokenRepository implements RefreshTokenRepository {
         }
 
         String key = RedisKeyBuilder.refreshToken(userId);
-
         try {
+            String storedHash = redisTemplate.opsForValue().get(key);
+            if (storedHash != null) {
+                String indexKey = RedisKeyBuilder.refreshTokenIndex(storedHash);
+                redisTemplate.delete(indexKey);
+            }
+
             Boolean result = Boolean.TRUE.equals(redisTemplate.delete(key));
             log.debug("RT 삭제 완료 — userId={}", userId);
             return result;

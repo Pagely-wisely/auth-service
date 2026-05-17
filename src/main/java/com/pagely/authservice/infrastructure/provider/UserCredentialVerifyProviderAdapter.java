@@ -1,14 +1,13 @@
-// src/main/java/com/pagely/authservice/infrastructure/external/FeignUserCredentialVerifier.java
-
 package com.pagely.authservice.infrastructure.provider;
 
 import com.pagely.authservice.application.port.UserCredentialProvider;
 import com.pagely.authservice.domain.exception.AuthErrorCode;
 import com.pagely.authservice.infrastructure.client.UserServiceClient;
 import com.pagely.authservice.infrastructure.client.dto.CredentialVerificationRequest;
-import com.pagely.authservice.infrastructure.client.dto.CredentialVerificationResponse;
+import com.pagely.authservice.infrastructure.client.dto.UserAuthInfoResponse;
 import com.pagely.common.exception.BusinessException;
 import feign.FeignException;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -32,18 +31,27 @@ public class UserCredentialVerifyProviderAdapter implements UserCredentialProvid
     @Override
     public Result verify(String loginId, String password) {
         try {
-            CredentialVerificationResponse response = userServiceClient.verifyCredentials(
+            UserAuthInfoResponse response = userServiceClient.verifyCredentials(
                     new CredentialVerificationRequest(loginId, password)
             );
             return new Result(response.userId(), response.role());
-
-        } catch (FeignException.Unauthorized e) {
-            log.debug("User Service 자격 검증 실패 — loginId={}", loginId);
-            throw new BusinessException(AuthErrorCode.LOGIN_FAILED);
 
         } catch (FeignException e) {
             log.error("User Service 통신 오류 — status={}, message={}", e.status(), e.getMessage());
             throw new BusinessException(AuthErrorCode.USER_SERVICE_UNAVAILABLE);
         }
     }
+
+    @Override
+    public Result findIdentity(UUID userId) {
+        try {
+            UserAuthInfoResponse response = userServiceClient.getAuthInfo(userId);
+            return response.toResult();
+        } catch (FeignException e) {
+            log.error("User Service 통신 오류 — status={}, message={}", e.status(), e.getMessage());
+            throw new BusinessException(AuthErrorCode.USER_SERVICE_UNAVAILABLE);
+        }
+
+    }
+
 }

@@ -1,5 +1,3 @@
-// src/main/java/com/pagely/authservice/domain/service/UserCredentialProvider.java
-
 package com.pagely.authservice.application.port;
 
 import com.pagely.common.auth.Role;
@@ -23,4 +21,11 @@ public interface UserCredentialProvider {
      * 자격 검증.
      */
     Result verify(String loginId, String password);
+
+    /**
+     * 자격 조회
+     *
+     * @param userId
+     */
+    Result findIdentity(UUID userId);
 }
