@@ -71,7 +71,7 @@ jobs:
             # 새 컨테이너 실행 (--env-file 옵션으로 뭉텅이 .env 주입)
             docker run -d \
               --name auth \
-              -p 8080:8080 \
+              -p 19091:19091 \
               -e SPRING_PROFILES_ACTIVE=prod \
               --env-file .env \
               --restart always \
