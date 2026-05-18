@@ -28,7 +28,6 @@ eureka:
       defaultZone: ${EUREKA_SERVER_URL:http://pagely-eureka:8000/eureka/}
   instance:
     prefer-ip-address: true
-    hostname: ${HOSTNAME:localhost}
 
 management:
   endpoints:
