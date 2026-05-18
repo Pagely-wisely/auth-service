@@ -6,7 +6,7 @@ on:
       - main
       - dev
       - init
-      - release
+      - prod
 
 jobs:
   check-branch-name:
